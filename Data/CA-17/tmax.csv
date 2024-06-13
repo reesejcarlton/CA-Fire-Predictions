@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <!-------------------------------------------------->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-57293135-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'UA-57293135-1');
+        </script>
+        <!-------------------------------------------------->
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+
+        <meta charset="utf-8">
+        <title>Page or Resource Not Found (404 Error) | National Centers for Environmental Information (NCEI)</title>
+        <meta name="description" content="The National Centers for Environmental Information&#039;s (NCEI) climate monitoring and assessment of temperature, precipitation, drought monitoring, snow climatology, climate map, climate index, climate extremes, global anomalies, sea surface temperature, drought, etc">
+        <meta name="keywords" content="climate monitoring, climate assessment, temperature, precipitation, drought monitoring, snow climatology, climate map, climate index, climate extremes, global anomalies, sea surface temperature, drought, billion-dollar disasters">
+        <meta name="author" content="NCEI.Monitoring.Info@noaa.gov">
+        <!-- remove the 300ms tap delay for mobile optimization -->
+        <meta name="viewport" content="width=device-width">
+
+        <link rel="shortcut icon" href="https://www.ncei.noaa.gov/themes/custom/ncei/favicon.ico" type="image/vnd.microsoft.icon">
+
+        <link rel="stylesheet" media="all"   href="/monitoring-content/lib/css/reset.css">
+        <link rel="stylesheet" media="all"   href="/cmb-lib/assets/jquery-ui-1.13.2/jquery-ui.min.css">
+        <link rel="stylesheet" media="all"   href="/cmb-lib/assets/bootstrap-5.3.2-dist/css/bootstrap.min.css">
+        <link rel="stylesheet" media="all"   href="/cmb-lib/assets/fontawesome6/css/all.min.css">
+        <link rel="stylesheet" media="all"   href="/monitoring-content/lib/css/monitoring.css">
+        <link rel="stylesheet" media="print" href="/monitoring-content/lib/css/print.css">
+        
+
+        <script src="/cmb-lib/assets/jquery-3.7.1.min.js"></script>
+        <script src="/cmb-lib/assets/jquery-ui-1.13.2/jquery-ui.min.js"></script>
+        <script src="/cmb-lib/assets/bootstrap-5.3.2-dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/cmb-lib/js/xss-prevention.js"></script>
+        <script src="/cmb-lib/js/search-monitoring.js"></script>
+        <script src="/cmb-lib/js/img-overlay.js"></script>
+        <script src="/cmb-lib/js/alerts.js"></script>
+        <script src="/cmb-lib/js/skip-to-main.js"></script>
+        
+    </head>
+    <body>
+        <a class="skip-to-main" href="#main-content" tabindex="0">Skip to main content</a>
+        <header role="banner">
+            <div class="print" id="print-head"><img alt="NOAA Logo" src="/monitoring-content/lib/images/noaa-logo.png"> NOAA's National Centers for Environmental Information</div>
+            <span id="backToTop" title="Back to Top"><span></span></span>
+            <div class="ncei-header-footer-container">
+                <div class="ncei-header-footer">
+                    <div class="ncei-header-footer-inner">
+                        <div class="ncei-footer-third-width">
+                            <div class="ncei-header-logo">
+                                <a href="http://www.ncei.noaa.gov"><img src="/monitoring-content/lib/images/ncei/logo.svg" title="Link to NCEI's Homepage" alt="Link to NCEI's Homepage"></a>
+                            </div>
+                        </div>
+                        <div class="ncei-footer-two-thirds-width"><div class="product-name"><h1>Page or Resource Not Found (404 Error)</h1></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-container">
+                <div class="ncei-app-inner container">
+                    <div class="ncei-footer-two-thirds-width"><nav role="navigation" aria-label="Breadcrumbs"><ol class="app-breadcrumbs"><li class="app-breadcrumb-item"><a title="NCEI Home" href="/">Home</a></li><li class="app-breadcrumb-item"><a title="Page or Resource Not Found (404 Error)" href="/">Page or Resource Not Found (404 Error)</a></li></ol></nav></div>
+                    <div class="ncei-footer-third-width" id="next-release"></div>
+                </div>
+            </div>
+            <div class="alerts"></div>
+        </header>
+        <main role="main" id="main-content" tabindex="-1">
+            <div id="page-content-container">
+                <div id="page-content" class="container">
+
+<p>We apologize, but the page or resource for which you were searching does not exist.</p>
+
+<h2>Please try the following</h2>
+
+<ul>
+	<li>Check the URL for spelling errors or typos</li>
+	<li>Review old bookmarks for the page</li>
+	<li>Go back to the <a href="/" rel="nofollow">homepage</a></li>
+	<li>Go to the <a href="/contact" rel="nofollow">contact page</a></li>
+	<li>Or, view our <a href="/sitemap" rel="nofollow">site map</a></li>
+</ul>
+                </div>
+            </div>
+        </main>
+        <footer role="contentinfo">
+            <div class="ncei-header-footer-container">
+                <div class="ncei-header-footer">
+                    <div class="ncei-header-footer-inner">
+                        <div class="ncei-footer-half-width">
+                            <div class="ncei-footer-logo">
+                                <a href="http://www.ncei.noaa.gov">
+                                    <img src="/monitoring-content/lib/images/ncei/logo_bw.svg" title="Link to NCEI's Homepage" alt="Link to NCEI's Homepage">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ncei-footer-quarter-width">
+                            <p class="ncei-header-footer-title">FOLLOW US</p>
+                            <ul>
+                                <li>
+                                    <a href="https://www.facebook.com/NOAANCEI/">
+                                        @NOAANCEI
+                                        <img src="/monitoring-content/lib/images/ncei/facebook-icon.png" width="100" height="100" title="NCEI Facebook" alt="NCEI Facebook">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.instagram.com/noaadata/">
+                                        @NOAAData
+                                        <img src="/monitoring-content/lib/images/ncei/instagram-icon.png" width="100" height="100" title="NOAA Data Instagram" alt="NOAA Data Instagram">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://twitter.com/NOAANCEI">
+                                        @NOAANCEI
+                                        <img src="/monitoring-content/lib/images/ncei/logo-x.png" width="100" height="102" title="NOAA NCEI Twitter" alt="NOAA NCEI Twitter">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://www.ncei.noaa.gov/news.xml">
+                                        News Feed
+                                        <img src="/monitoring-content/lib/images/ncei/rss-icon.png" width="100" height="100" title="NCEI RSS Feed" alt="NCEI RSS Feed">
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="ncei-footer-quarter-width">
+                            <p class="ncei-header-footer-title">CONTACT US</p>
+                            <ul>
+                                <li><a href="mailto:ncei.info@noaa.gov">Email: ncei.info@noaa.gov</a></li>
+                                <li><a href="tel:8282714800">Phone: (828) 271-4800</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <script src="/cmb-lib/js/back-to-top.js"></script>
+    </body>
+</html>
