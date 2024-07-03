@@ -42,10 +42,16 @@ if layers:
             properties = feature['properties']
             geometry = feature['geometry']
             
-            # Extract coordinates for the centroid of the polygon
-            geom_shape = gpd.GeoSeries([geometry])
-            centroid = geom_shape.centroid
-            centroid_coords = centroid.iloc[0].coords[0]
+            # Create a GeoDataFrame for the geometry
+            geom_gdf = gpd.GeoDataFrame({'geometry': [geometry]}, crs=layer.crs)
+            
+            # Calculate the centroid of the polygon
+            centroid = geom_gdf.geometry.centroid
+            
+            # Reproject the centroid to WGS84 (EPSG:4326)
+            centroid_wgs84 = centroid.to_crs(epsg=4326)
+            
+            centroid_coords = centroid_wgs84.iloc[0].coords[0]
             
             data.append({
                 'Own_Level': properties['Own_Level'],
@@ -53,16 +59,25 @@ if layers:
                 'Own_Group': properties['Own_Group'],
                 'SHAPE_Length': properties['SHAPE_Length'],
                 'SHAPE_Area': properties['SHAPE_Area'],
-                'Centroid_X': centroid_coords[0],
-                'Centroid_Y': centroid_coords[1]
+                'Longitude': centroid_coords[0],
+                'Latitude': centroid_coords[1]
             })
 
 # Convert to GeoDataFrame
-gdf = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy([item['Centroid_X'] for item in data], [item['Centroid_Y'] for item in data]))
+gdf = gpd.GeoDataFrame(data, geometry=gpd.points_from_xy([item['Longitude'] for item in data], [item['Latitude'] for item in data]), crs='EPSG:4326')
 
 # Display the first few rows of the GeoDataFrame
 print(gdf.head())
 
-# Optionally, plot the data
-gdf.plot(column='Own_Group', legend=False)
-plt.show()
+# Export to Shapefile
+shapefile_path = '../Data/ownership23_1.shp'
+gdf.to_file(shapefile_path)
+
+# Export to GeoJSON
+geojson_path = '../Data/ownership23_1.geojson'
+gdf.to_file(geojson_path, driver='GeoJSON')
+
+# Export to GeoPackage
+geopackage_path = '../Data/ownership23_1.gpkg'
+gdf.to_file(geopackage_path, layer='ownership23_1', driver='GPKG')
+
