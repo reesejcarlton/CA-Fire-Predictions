@@ -64,21 +64,9 @@ print(gdf.head())
 shapefile_path = '../Data/Land Ownership Data/Processed Data/ownership23_1.shp'
 gdf.to_file(shapefile_path)
 
-# Export to GeoJSON
-geojson_path = '../Data/Land Ownership Data/Processed Data/ownership23_1.geojson'
-gdf.to_file(geojson_path, driver='GeoJSON')
-
 # Export to GeoPackage
 geopackage_path = '../Data/Land Ownership Data/Processed Data/ownership23_1.gpkg'
 gdf.to_file(geopackage_path, layer='ownership23_1', driver='GPKG')
-
-# Read from Shapefile
-gdf_from_shapefile = gpd.read_file(shapefile_path)
-print("From Shapefile:\n", gdf_from_shapefile.head())
-
-# Read from GeoJSON
-gdf_from_geojson = gpd.read_file(geojson_path)
-print("From GeoJSON:\n", gdf_from_geojson.head())
 
 # Read from GeoPackage
 gdf_from_geopackage = gpd.read_file(geopackage_path, layer='ownership23_1')
