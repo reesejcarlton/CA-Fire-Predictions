@@ -8,39 +8,75 @@ Created on Mon Jun 10 16:36:32 2024
 import os
 import requests
 import numpy as np
+from io import StringIO
+import pandas as pd
 
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-#Get list of each California county
-ca_counties_id = [str(x) for x in np.arange(1, 116, 2)]
+# NOAA data
 
-#Get list of measures
+# from https://www.ncei.noaa.gov/pub/data/cirs/climdiv/
+# README file: https://www.ncei.noaa.gov/pub/data/cirs/climdiv/county-readme.txt
+# in this file CA state code is 04 (not 06)
 
-measures = ["tavg", "tmax", "tmin", "pcp"]
+noaa_pcp_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-pcpncy-v1.0.0-20240606"
+noaa_tmax_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-tmaxcy-v1.0.0-20240606"
+noaa_tmin_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-tmincy-v1.0.0-20240606"
 
-for county_id in ca_counties_id:
-    
-    # Define the relative output directory path
-    output_directory = os.path.join(script_dir, "../Data/CA-" + county_id)
-    
-    for measure in measures:
-        
-        # Construct the CSV file URL
-        csv_url = "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/county/time-series/CA-" + county_id + "/" + measure + "/1/0/2000-2024.csv"
+def get_noaa_data_df(target_url):
+    noaa_data = requests.get(target_url)    
+    noaa_month_colnames= ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+    noaa_df = pd.read_csv(StringIO(noaa_data.text), lineterminator="\n", sep=r"\s+", header=None, names=["ID", *noaa_month_colnames], index_col=False, dtype="string")
+    return noaa_df
 
-        # Download the CSV file
-        try:
-            csv_response = requests.get(csv_url, headers={'User-Agent': 'Mozilla/5.0'})
-            csv_response.raise_for_status()  # Raise an exception for 4xx or 5xx status codes
-        except requests.exceptions.RequestException as e:
-            print(f"Failed to download CSV file: {e}")
-            # Handle the error here, e.g., return or exit
+pcp_data_df = get_noaa_data_df(noaa_pcp_url)
+tmax_data_df = get_noaa_data_df(noaa_tmax_url)
+tmin_data_df = get_noaa_data_df(noaa_tmin_url)
 
-        # Save the CSV file to the specified output directory
-        os.makedirs(output_directory, exist_ok=True)  # Create the output directory if it doesn't exist
-        output_file_path = os.path.join(output_directory, measure + '.csv')
-        with open(output_file_path, 'wb') as f:
-            f.write(csv_response.content)
-        
-        print("CSV file was downloaded to:", output_file_path)
+# Concatenate NOAA dfs together
+noaa_full_df = pd.concat([pcp_data_df, tmax_data_df, tmin_data_df], axis=0)
+
+# Extract NOAA ID
+def extract_noaa_id(df):
+    df["STATE_CODE"] = df["ID"].str[:2]
+    df["FIPS_CODE"] = df["ID"].str[2:5]
+    df["ELEMENT_CODE"] = df["ID"].str[5:7]
+    df["YEAR"] = df["ID"].str[7:]
+    return df
+
+extract_noaa_id(noaa_full_df)
+
+# Map element codes to descriptive abbreviation
+
+element_code_map = {
+# element codes from docs
+    "01": "pcp", # Precipitation
+    "02": "tavg", # Average Temperature
+    "25": "Heating Degree Days",
+    "26": "Cooling Degree Days",
+    "27": "tmax", # Maximum Temperature
+    "28": "tmin" # Minimum Temperature
+}
+
+noaa_full_df["NOAA_ELEMENT"] = noaa_full_df["ELEMENT_CODE"].map(element_code_map).fillna(noaa_full_df["ELEMENT_CODE"])
+noaa_full_df
+
+noaa_ca_df = noaa_full_df[noaa_full_df["STATE_CODE"] == "04"]
+
+# FIPS Codes
+
+# from https://www.census.gov/library/reference/code-lists/ansi.html#cou
+fips_url = "https://www2.census.gov/geo/docs/reference/codes2020/cou/st06_ca_cou2020.txt"
+
+fips_data = requests.get(fips_url)
+fips_df = pd.read_csv(StringIO(fips_data.text), lineterminator="\n", sep="|", dtype="string")
+
+# Join to FIPS df
+noaa_ca_counties_df = pd.merge(fips_df[["COUNTYFP", "COUNTYNAME"]], noaa_ca_df, left_on="COUNTYFP", right_on="FIPS_CODE")
+noaa_ca_counties_df["COUNTYNAME"] = noaa_ca_counties_df["COUNTYNAME"].str.split().apply(lambda row: ' '.join(row[:-1]))
+
+# Remove unnecessary encoding columns
+noaa_ca_counties_df = noaa_ca_counties_df[['COUNTYNAME', 'NOAA_ELEMENT', 'YEAR', 'JAN', 'FEB', 'MAR', 'APR', 'MAY',
+       'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC', 'ID']]
+noaa_ca_counties_df.to_csv("../Data/Weather Data/Processed Data/CA County Weather Data.csv")
