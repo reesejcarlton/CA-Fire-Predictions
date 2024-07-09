@@ -14,15 +14,21 @@ import pandas as pd
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
+# Change the working directory to the script's directory
+os.chdir(script_dir)
+
 # NOAA data
 
 # from https://www.ncei.noaa.gov/pub/data/cirs/climdiv/
 # README file: https://www.ncei.noaa.gov/pub/data/cirs/climdiv/county-readme.txt
 # in this file CA state code is 04 (not 06)
 
-noaa_pcp_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-pcpncy-v1.0.0-20240606"
-noaa_tmax_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-tmaxcy-v1.0.0-20240606"
-noaa_tmin_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-tmincy-v1.0.0-20240606"
+noaa_pcp_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-pcpncy-v1.0.0-20240705"
+noaa_tmax_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-tmaxcy-v1.0.0-20240705"
+noaa_tmin_url = "https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-tmincy-v1.0.0-20240705"
+noaa_tavg_url = 'https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-tmpccy-v1.0.0-20240705'
+noaa_ccd_url = 'https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-cddccy-v1.0.0-20240705'
+noaa_hhd_url = 'https://www.ncei.noaa.gov/pub/data/cirs/climdiv/climdiv-hddccy-v1.0.0-20240705'
 
 def get_noaa_data_df(target_url):
     noaa_data = requests.get(target_url)    
@@ -33,10 +39,13 @@ def get_noaa_data_df(target_url):
 pcp_data_df = get_noaa_data_df(noaa_pcp_url)
 tmax_data_df = get_noaa_data_df(noaa_tmax_url)
 tmin_data_df = get_noaa_data_df(noaa_tmin_url)
+tavg_data_df = get_noaa_data_df(noaa_tavg_url)
+ccd_data_df = get_noaa_data_df(noaa_ccd_url)
+hhd_data_df = get_noaa_data_df(noaa_hhd_url)
 
 # Concatenate NOAA dfs together
-noaa_full_df = pd.concat([pcp_data_df, tmax_data_df, tmin_data_df], axis=0)
-
+noaa_full_df = pd.concat([pcp_data_df, tmax_data_df, tmin_data_df, tavg_data_df, ccd_data_df, hhd_data_df], axis=0)
+#%%
 # Extract NOAA ID
 def extract_noaa_id(df):
     df["STATE_CODE"] = df["ID"].str[:2]
