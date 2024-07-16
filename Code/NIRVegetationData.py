@@ -10,7 +10,6 @@ import numpy as np
 from datetime import datetime
 from pystac_client import Client
 
-from multiprocessing_helper import process
 import multiprocessing
 from multiprocessing import Queue
 
