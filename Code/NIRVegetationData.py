@@ -10,6 +10,10 @@ import numpy as np
 from datetime import datetime
 from pystac_client import Client
 
+from multiprocessing_helper import process
+import multiprocessing
+from multiprocessing import Queue
+
 # First get lat/long grid
 def get_coordinate_grid(lat, lon, dist=5000, coors=1):
     """Create a coordinate grid 
@@ -118,21 +122,53 @@ def process_data(canonical_url, item):
     path = canonical_url[1:-1].replace("/", "-")
     
     # save to .tiff files
+    plt.imsave(f"../Data/Wildfire Satellite Visual/tiff/{path}.tiff", stac_visual)
     plt.imsave(f"../Data/Wildfire Satellite NIR/tiff/{path}.tiff", stac_nir_band)
     plt.imsave(f"../Data/Wildfire Satellite RED/tiff/{path}.tiff", stac_red_band)
     plt.imsave(f"../Data/Wildfire NDVI/tiff/{path}.tiff", ndvi)
     
     # save to .png files
+    plt.imsave(f"../Data/Wildfire Satellite Visual/png/{path}.png", stac_visual)
     plt.imsave(f"../Data/Wildfire Satellite NIR/png/{path}.png", stac_nir_band)
     plt.imsave(f"../Data/Wildfire Satellite RED/png/{path}.png", stac_red_band)
     plt.imsave(f"../Data/Wildfire NDVI/png/{path}.png", ndvi)
-    return
+    
+    mean_ndvi = np.mean(ndvi)
+    return canonical_url, mean_ndvi
+
+def run(first_fire, queue):
+    try:
+        grid = get_coordinate_grid(lat=first_fire.Latitude, lon=first_fire.Longitude,
+                            dist=5000, coors=1)
+        item = query_data(coordinates=grid, time_start=first_fire.Started,
+                    time_end=first_fire.Extinguished)
+        output = process_data(canonical_url=first_fire.CanonicalUrl, item=item)
+        queue.put(output)
+    except:
+        queue.put(first_fire.CanonicalUrl, None)
+
+
+queue = Queue()
+processes = []
+urls = []
+mean_ndvi_list = []
 
 fires = pd.read_csv("../Data/California_Fire_Incidents.csv")
 fires = fires[fires.ArchiveYear > 2014].reset_index()
-first_fire = fires.iloc[[0]]
-grid = get_coordinate_grid(lat=first_fire.Latitude[0], lon=first_fire.Longitude[0],
-                           dist=5000, coors=1)
-item = query_data(coordinates=grid, time_start=first_fire.Started[0],
-                  time_end=first_fire.Extinguished[0])
-process_data(canonical_url=first_fire.CanonicalUrl[0], item=item)
+
+for i in fires.to_dict(orient='records'):
+    proc = multiprocessing.Process(target=run, args=[i, queue])
+    proc.start()
+    processes.append(proc)
+
+for p in processes:
+        r = queue.get()
+        if r[1]:
+            urls.append(r[0])
+            mean_ndvi_list.append(r[1])
+
+for p in processes:
+    p.join()
+
+df = pd.DataFrame(data=[urls, mean_ndvi_list], columns=['canonical_url', 'mean_ndvi'])
+df.to_csv('../Data/California_Mean_NDVI.csv')
