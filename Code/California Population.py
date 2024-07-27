@@ -177,6 +177,8 @@ CA_pop_1980_late = CA_pop_1980_late.dropna(subset=['Code', 'Area Name']).reset_i
 
 CA_pop_1980 = pd.merge(CA_pop_1980_early, CA_pop_1980_late, left_on = ["Code", "Area Name"], right_on = ["Code", "Area Name"])
 CA_pop_1980['Area Name'] = CA_pop_1980['Area Name'].str.replace(r' Co.$', ' County').str.replace(r' C$', ' County')
+CA_pop_1980['Area Name'] = CA_pop_1980['Area Name'].str.replace(r' Co$', ' County').str.replace(r' C$', ' County')
+CA_pop_1980['Area Name'] = CA_pop_1980['Area Name'].str.replace(' Obisp', ' Obispo')
 CA_pop_1980['Code'] = CA_pop_1980['Code'].apply(lambda x: int(x[1:]))
 CA_pop_1980.iloc[:, 2:] = CA_pop_1980.iloc[:, 2:].astype(int)
 new_order = ['Area Name', 'Code', '1970', '1971', '1972', '1973', '1974', '1975', '1976', '1977', '1978', '1979']
@@ -190,11 +192,11 @@ CA_pop_1980_names = {
 CA_pop_1980.rename(columns=CA_pop_1980_names, inplace=True)
 
 #Complete California Population Time Series
-CA_pop_1980_2023 = pd.merge(CA_pop_1980, CA_pop_1990, on=['CTYNAME', 'FULLFP'], suffixes=('_1980', '_1990'))
-CA_pop_1980_2023 = pd.merge(CA_pop_1980_2023, CA_pop_2000, on=['CTYNAME', 'FULLFP'], suffixes=('', '_2000'))
-CA_pop_1980_2023 = pd.merge(CA_pop_1980_2023, CA_pop_2010, on=['CTYNAME', 'FULLFP'], suffixes=('', '_2010'))
-CA_pop_1980_2023 = pd.merge(CA_pop_1980_2023, CA_pop_2020, on=['CTYNAME', 'FULLFP'], suffixes=('', '_2020'))
-CA_pop_1980_2023 = pd.merge(CA_pop_1980_2023, CA_pop_2023, on=['CTYNAME', 'FULLFP'], suffixes=('', '_2023'))
+CA_pop_1980_2023 = pd.merge(CA_pop_1980, CA_pop_1990, on=['CTYNAME', 'FULLFP'], suffixes=('_1980', '_1990'), how = 'outer')
+CA_pop_1980_2023 = pd.merge(CA_pop_1980_2023, CA_pop_2000, on=['CTYNAME', 'FULLFP'], suffixes=('', '_2000'), how = 'outer')
+CA_pop_1980_2023 = pd.merge(CA_pop_1980_2023, CA_pop_2010, on=['CTYNAME', 'FULLFP'], suffixes=('', '_2010'), how = 'outer')
+CA_pop_1980_2023 = pd.merge(CA_pop_1980_2023, CA_pop_2020, on=['CTYNAME', 'FULLFP'], suffixes=('', '_2020'), how = 'outer')
+CA_pop_1980_2023 = pd.merge(CA_pop_1980_2023, CA_pop_2023, on=['CTYNAME', 'FULLFP'], suffixes=('', '_2023'), how = 'outer')
 
 #Read in County Area Data
 CA_area = pd.read_csv("../Data/Population Data/Raw Data/CA_Counties_Population_Density.csv")
