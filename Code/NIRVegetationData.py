@@ -11,16 +11,17 @@ from datetime import datetime
 from pystac_client import Client
 
 import multiprocessing
+import time
 from multiprocessing import Queue
 
 # First get lat/long grid
-def get_coordinate_grid(lat, lon, dist=5000, coors=1):
+def get_coordinate_grid(lat, lon, dist=256, coors=1):
     """Create a coordinate grid 
 
     Args:
         lat (_type_): _description_
         lon (_type_): _description_
-        dist (int, optional): Distance in meters in each direction. Defaults to 5000.
+        dist (int, optional): Distance in meters in each direction. Defaults to 256.
         coors (int, optional): Number of coordinates in each direction. Defaults to 1.
     """
 
@@ -37,9 +38,11 @@ def get_coordinate_grid(lat, lon, dist=5000, coors=1):
     dLon = Y/(R*np.cos(np.pi*lat/180))
     latO = lat + dLat * 180/np.pi
     lonO = lon + dLon * 180/np.pi
-
+    latO = np.append(latO[0], latO[0][0])
+    lonO = np.append(lonO[0], lonO[0][0])
+    output = [[[lon, lat] for lat, lon in zip(latO.tolist(), lonO.tolist())]]
     #stack x and y latlongs and get (lat,long) format
-    output = np.stack([lonO, latO]).tolist()
+    # output = np.stack([lonO, latO], axis=-1).tolist()
     return output
 
 def select_lowest_cloud_coverage(items):
@@ -57,7 +60,7 @@ def select_lowest_cloud_coverage(items):
         if obj.properties['eo:cloud_cover'] < cover:
             item = obj
             cover = obj.properties['eo:cloud_cover']
-    return item
+    return item, cover
 
 def process_stac_object(item):
     stac_visual = (
@@ -87,20 +90,19 @@ def query_data(coordinates, time_start, time_end):
     modifier=pc.sign_inplace,
     )
     collections = ["sentinel-2-l2a"]
-    
 
     area_of_interest = {
         "type": "Polygon",
-        "coordinates": 
-                    [
-            [
-                [-122.2751, 47.5469],
-                [-121.9613, 47.9613],
-                [-121.9613, 47.9613],
-                [-122.2751, 47.9613],
-                [-122.2751, 47.5469],
-            ]
-        ],
+        "coordinates": coordinates
+        #             [
+        #     [
+        #         [-122.2751, 47.5469],
+        #         [-121.9613, 47.9613],
+        #         [-121.9613, 47.9613],
+        #         [-122.2751, 47.9613],
+        #         [-122.2751, 47.5469],
+        #     ]
+        # ],
     }
 
     # Format: "2020-12-01/2020-12-31"
@@ -112,62 +114,75 @@ def query_data(coordinates, time_start, time_end):
         collections=collections, intersects=area_of_interest, datetime=time_range
     )
     items = search.item_collection()
-    item = select_lowest_cloud_coverage(items)
-    return item
+    item, cloud_coverage = select_lowest_cloud_coverage(items)
+    return item, cloud_coverage, coordinates
     
 def process_data(canonical_url, item):
     stac_visual, stac_nir_band, stac_red_band, ndvi = process_stac_object(item)
     # Save to netCDF files
     path = canonical_url[1:-1].replace("/", "-")
     
-    # save to .tiff files
-    plt.imsave(f"../Data/Wildfire Satellite Visual/tiff/{path}.tiff", stac_visual)
-    plt.imsave(f"../Data/Wildfire Satellite NIR/tiff/{path}.tiff", stac_nir_band)
-    plt.imsave(f"../Data/Wildfire Satellite RED/tiff/{path}.tiff", stac_red_band)
-    plt.imsave(f"../Data/Wildfire NDVI/tiff/{path}.tiff", ndvi)
+    # save to .tiff files removed since it was taking too much space
+    # plt.imsave(f"../Data/Wildfire Satellite Visual/tiff/{path}.tiff", stac_visual)
+    # plt.imsave(f"../Data/Wildfire Satellite NIR/tiff/{path}.tiff", stac_nir_band)
+    # plt.imsave(f"../Data/Wildfire Satellite RED/tiff/{path}.tiff", stac_red_band)
+    # plt.imsave(f"../Data/Wildfire NDVI/tiff/{path}.tiff", ndvi)
     
     # save to .png files
-    plt.imsave(f"../Data/Wildfire Satellite Visual/png/{path}.png", stac_visual)
-    plt.imsave(f"../Data/Wildfire Satellite NIR/png/{path}.png", stac_nir_band)
-    plt.imsave(f"../Data/Wildfire Satellite RED/png/{path}.png", stac_red_band)
-    plt.imsave(f"../Data/Wildfire NDVI/png/{path}.png", ndvi)
+    plt.imsave(f"../Data/Wildfire Satellite Visual/{path}.png", stac_visual)
+    plt.imsave(f"../Data/Wildfire Satellite NIR/{path}.png", stac_nir_band)
+    plt.imsave(f"../Data/Wildfire Satellite RED/{path}.png", stac_red_band)
+    plt.imsave(f"../Data/Wildfire NDVI/{path}.png", ndvi)
     
-    mean_ndvi = np.mean(ndvi)
+    mean_ndvi = ndvi.mean()
     return canonical_url, mean_ndvi
 
-def run(first_fire, queue):
+def run(first_fire):
     try:
         grid = get_coordinate_grid(lat=first_fire.Latitude, lon=first_fire.Longitude,
-                            dist=5000, coors=1)
-        item = query_data(coordinates=grid, time_start=first_fire.Started,
+                            dist=256, coors=1)
+        item, cloud_coverage, coordinates = query_data(coordinates=grid, time_start=first_fire.Started,
                     time_end=first_fire.Extinguished)
-        output = process_data(canonical_url=first_fire.CanonicalUrl, item=item)
-        queue.put(output)
-    except:
-        queue.put(first_fire.CanonicalUrl, None)
+        canonical_url, mean_ndvi = process_data(canonical_url=first_fire.CanonicalUrl, item=item)
+        return canonical_url, mean_ndvi, cloud_coverage, coordinates
+    except Exception as e:
+        print(e)
+        return first_fire.CanonicalUrl, None, None, None
 
+def main():
+    num_threads = multiprocessing.cpu_count()-1 or 1
+    print(f"num threads: {num_threads}")
+    pool = multiprocessing.Pool(processes=4)
+    start = time.time()
+    processes = []
+    urls = []
+    mean_ndvi_list = []
+    cloud_coverage_list = []
+    coordinates = []
 
-queue = Queue()
-processes = []
-urls = []
-mean_ndvi_list = []
+    fires = pd.read_csv("../Data/California_Fire_Incidents.csv")
+    fires = fires[fires.ArchiveYear > 2014].reset_index()
+    # fires = fires[fires.index==0]
 
-fires = pd.read_csv("../Data/California_Fire_Incidents.csv")
-fires = fires[fires.ArchiveYear > 2014].reset_index()
+    for _, row in fires.iterrows():
+        # url, mean_ndvi = run(row)
+        # if mean_ndvi:
+        #     urls.append(url)
+        #     mean_ndvi_list.append(mean_ndvi)
+        result = pool.apply_async(func=run, args=[row])
+        processes.append(result)
 
-for i in fires.to_dict(orient='records'):
-    proc = multiprocessing.Process(target=run, args=[i, queue])
-    proc.start()
-    processes.append(proc)
-
-for p in processes:
-        r = queue.get()
+    for p in processes:
+        r = p.get()
         if r[1]:
             urls.append(r[0])
             mean_ndvi_list.append(r[1])
+            cloud_coverage_list.append(r[2])
+            coordinates.append(r[3])
 
-for p in processes:
-    p.join()
+    df = pd.DataFrame(data={'canonical_url': urls, 'mean_ndvi': mean_ndvi_list, 'cloud_coverage': cloud_coverage_list, 'coordinates': coordinates})
+    df.to_csv('../Data/California_Mean_NDVI.csv')
+    print(f"\nRuntime: {time.time()-start}")
 
-df = pd.DataFrame(data=[urls, mean_ndvi_list], columns=['canonical_url', 'mean_ndvi'])
-df.to_csv('../Data/California_Mean_NDVI.csv')
+if __name__ == '__main__':
+    main()
